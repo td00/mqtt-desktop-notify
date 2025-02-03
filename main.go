@@ -15,7 +15,7 @@ import (
 )
 
 // define version
-const version = "0.0.1-dev"
+const version = "0.0.1"
 
 func main() {
 	// Global flags
