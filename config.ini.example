@@ -1,0 +1,10 @@
+[mqtt]
+server = 127.0.0.1
+port = 1883
+username = ""
+password = ""
+topic = "topic/to/subscribe"
+
+[notification]
+title = "Ring Ring! 🔔"
+text = "This is a demo notification"
