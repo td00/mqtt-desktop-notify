@@ -14,43 +14,35 @@ import (
 	"gopkg.in/ini.v1"
 )
 
-func main() {
-	// define createconfig command
-	createConfigFlag := flag.NewFlagSet("createconfig", flag.ExitOnError)
-	configPath := createConfigFlag.String("c", "", "Path to config file")
+// define version
+const version = "0.0.1-dev"
 
-	// Parse command-line arguments
-	if len(os.Args) < 2 {
-		// Start the application directly if no command is specified
-		runApp()
+func main() {
+	// Global flags
+	versionFlag := flag.Bool("v", false, "Show version information")
+	configPath := flag.String("c", "", "Path to config file")
+
+	// Parse the command-line arguments
+	flag.Parse()
+
+	// If the version flag is set, show version info and exit
+	if *versionFlag {
+		showVersion()
 		return
 	}
 
 	// Check if the createconfig command is provided
-	switch os.Args[1] {
-	case "createconfig":
-		createConfigFlag.Parse(os.Args[2:])
-		if *configPath == "" {
-			homeDir, err := os.UserHomeDir()
-			if err != nil {
-				log.Fatalf("ERROR: getting home directory: %v", err)
-			}
-			*configPath = filepath.Join(homeDir, ".config", "mqttpushnotify.ini")
-		}
+	if len(os.Args) > 1 && os.Args[1] == "createconfig" {
 		// Create the config interactively
 		createConfig(*configPath)
-	default:
-		// If no command is given, just run the app
-		runApp()
+	} else {
+		// Start the application directly if no command is specified
+		runApp(configPath)
 	}
 }
 
-func runApp() {
-	// get config path
-	configPath := flag.String("c", "", "Path to config file")
-	flag.Parse()
-
-	// default path
+func runApp(configPath *string) {
+	// Default path
 	if *configPath == "" {
 		homeDir, err := os.UserHomeDir()
 		if err != nil {
@@ -59,7 +51,7 @@ func runApp() {
 		*configPath = filepath.Join(homeDir, ".config", "mqttpushnotify.ini")
 	}
 
-	// check if config file exists
+	// Check if config file exists
 	if _, err := os.Stat(*configPath); os.IsNotExist(err) {
 		// No config file found, ask user to create a new one
 		fmt.Println("No config file found at", *configPath)
@@ -79,7 +71,7 @@ func runApp() {
 		}
 	}
 
-	// load config
+	// Load config
 	cfg, err := ini.Load(*configPath)
 	if err != nil {
 		log.Fatalf("ERROR: loading config: %v", err)
@@ -217,6 +209,13 @@ func createConfig(configPath string) {
 	writer.Flush()
 
 	fmt.Println("Config file created successfully at", configPath)
+}
+
+func showVersion() {
+	// Output the version information
+	fmt.Println("mqtt-desktop-notify is running in version", version)
+	fmt.Println("\nmqtt-desktop-notify is licensed under AGPLv3.")
+	fmt.Println("\nFind out more: https://github.com/td00/mqtt-desktop-notify")
 }
 
 func getInput() string {
