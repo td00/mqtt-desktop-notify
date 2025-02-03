@@ -25,6 +25,11 @@ jobs:
       run: |
         go build -o mqtt-desktop-notify
 
+    - name: Set Git committer identity
+      run: |
+        git config --global user.email "action@github.com"
+        git config --global user.name "GitHub Action"
+
     - name: Create Git tag
       run: |
         TAG_NAME="v$(date +'%Y%m%d%H%M%S')"
