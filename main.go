@@ -64,7 +64,7 @@ func runApp() {
 		// No config file found, ask user to create a new one
 		fmt.Println("No config file found at", *configPath)
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Do you want to create a new config file? (y/n) [y]: ")
+		fmt.Print("Do you want to create a new config file? (Y/n): ")
 		answer, _ := reader.ReadString('\n')
 		answer = strings.TrimSpace(answer)
 		if answer == "" {
@@ -103,42 +103,9 @@ func runApp() {
 	username := mqttSection.Key("username").String()
 	password := mqttSection.Key("password").String()
 
-	// Ask user if notification should be configured
-	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Do you want to configure notification settings? (y/n) [n]: ")
-	notificationAnswer, _ := reader.ReadString('\n')
-	notificationAnswer = strings.TrimSpace(notificationAnswer)
-	if notificationAnswer == "" {
-		notificationAnswer = "n" // Default to "n"
-	}
-
 	// Read Notify Config
-	var title, text string
-	if notificationAnswer == "y" || notificationAnswer == "Y" {
-		// User wants to configure notifications
-		fmt.Print("Enter the notification title: ")
-		title = getInput()
-		fmt.Print("Enter the notification text: ")
-		text = getInput()
-	} else {
-		// Use default notification settings
-		title = "mqtt-desktop-notify"
-		text = "new notification"
-	}
-
-	// Save config to file
-	cfg.Section("mqtt").Key("server").SetValue(server)
-	cfg.Section("mqtt").Key("port").SetValue(port)
-	cfg.Section("mqtt").Key("topic").SetValue(topic)
-	cfg.Section("mqtt").Key("username").SetValue(username)
-	cfg.Section("mqtt").Key("password").SetValue(password)
-	cfg.Section("notification").Key("title").SetValue(title)
-	cfg.Section("notification").Key("text").SetValue(text)
-
-	err = cfg.SaveTo(*configPath)
-	if err != nil {
-		log.Fatalf("ERROR: saving config: %v", err)
-	}
+	title := cfg.Section("notification").Key("title").String()
+	text := cfg.Section("notification").Key("text").String()
 
 	// Connect MQTT Client
 	log.Printf("INFO: Connect MQTT Client")
@@ -222,10 +189,29 @@ func createConfig(configPath string) {
 		writer.WriteString("password = " + password + "\n")
 	}
 
+	// Ask if notification configuration is needed
+	reader := bufio.NewReader(os.Stdin)
+	fmt.Print("Do you want to configure notification settings? (y/N): ")
+	notificationAnswer, _ := reader.ReadString('\n')
+	notificationAnswer = strings.TrimSpace(notificationAnswer)
+	if notificationAnswer == "" {
+		notificationAnswer = "n" // Default to "n"
+	}
+
 	// Write the notification config section
 	writer.WriteString("[notification]\n")
-	writer.WriteString("title = mqtt-desktop-notify\n")
-	writer.WriteString("text = new notification\n")
+	if notificationAnswer == "y" || notificationAnswer == "Y" {
+		fmt.Print("Enter the notification title: ")
+		title := getInput()
+		fmt.Print("Enter the notification text: ")
+		text := getInput()
+		writer.WriteString("title = " + title + "\n")
+		writer.WriteString("text = " + text + "\n")
+	} else {
+		// Use default notification settings
+		writer.WriteString("title = mqtt-desktop-notify\n")
+		writer.WriteString("text = new notification\n")
+	}
 
 	// Save the file
 	writer.Flush()
