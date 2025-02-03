@@ -13,6 +13,15 @@ By default, the configuration file is located at:
 
 If you wish to use a different location for the configuration file, you can specify it with the `-c` flag.
 
+If no config is found at the location you'll be asked to create the config via the interactive CLI. (this can be combined with `-c`)
+
+If you want to overwrite a config you can do so by specifying `createconfig` (this can be combined with `-c`)
+
+### Examples
+
+`./mqtt-desktop-notify -c example.ini` will load the file `example.ini` in your current directory
+
+`./mqtt-desktop-notify createconfig -c example.ini` will **_overwrite_** the file `example.ini` in your current directory. **This will happen without warning!**
 ## Config Options
 
 The configuration file (`mqttpushnotify.ini`) should contain the following sections and options:
@@ -26,6 +35,7 @@ password = ""  # Optional, leave empty if not needed
 topic = "topic/to/subscribe"  # MQTT topic to subscribe to
 
 [notification]
+type = static
 title = "Ring Ring! 🔔"  # Notification title
 text = "Your Text"  # Notification text
 ```
@@ -38,8 +48,21 @@ text = "Your Text"  # Notification text
   - `topic`: The MQTT topic to subscribe to.
 
 - **[notification]**
+  - `type`: Type of notification parsing
+    - `static`: shows `title` & `text` as notification
+    - `dynamic`: shows `title` & gets `text` from payload
+    - `json`: gets `title` & `text` from json
   - `title`: The title of the notification.
   - `text`: The content of the notification.
+
+json formatting:
+
+```json
+{
+  "title": "notification title",
+  "text": "notification body"
+}
+```
 
 ## Downloading the Files
 
