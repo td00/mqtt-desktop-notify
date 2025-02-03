@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"flag"
 	"fmt"
 	"log"
@@ -98,6 +99,11 @@ func runApp(configPath *string) {
 	// Read Notify Config
 	title := cfg.Section("notification").Key("title").String()
 	text := cfg.Section("notification").Key("text").String()
+	notificationType := cfg.Section("notification").Key("type").String()
+	if notificationType == "" {
+		log.Printf("WARN: notification type not set, defaulting to static")
+		notificationType = "static" // Default to "static"
+	}
 
 	// Connect MQTT Client
 	log.Printf("INFO: Connect MQTT Client")
@@ -115,14 +121,37 @@ func runApp(configPath *string) {
 
 	// Subscribe to Topic
 	if token := client.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
-		// Use dynamic content for text if configured as "dynamic"
-		notificationText := text
-		if text == "dynamic" {
+		// Variables to hold the final notification title and text
+		var notificationText string
+		var notificationTitle string
+
+		// Handle different notification types
+		switch notificationType {
+		case "static":
+			// Use configured title and text
+			notificationTitle = title
+			notificationText = text
+		case "dynamic":
+			// Use only the message payload for text, title stays static
+			notificationTitle = title
 			notificationText = string(msg.Payload()) // Set the topic message content as text
+		case "json":
+			// Parse the payload as JSON to extract title and text
+			var jsonData map[string]string
+			err := json.Unmarshal(msg.Payload(), &jsonData)
+			if err != nil {
+				log.Printf("ERROR: parsing JSON payload: %v", err)
+				return
+			}
+			notificationTitle = jsonData["title"]
+			notificationText = jsonData["text"]
+		default:
+			log.Printf("ERROR: unknown notification type: %s", notificationType)
+			return
 		}
 
 		// Generate Push Notification
-		err := beeep.Notify(title, notificationText, "assets/information.png")
+		err := beeep.Notify(notificationTitle, notificationText, "assets/information.png")
 		log.Printf("INFO: Send out notification")
 		if err != nil {
 			log.Printf("ERROR: rendering notification: %v", err)
@@ -187,7 +216,7 @@ func createConfig(configPath string) {
 		writer.WriteString("password = " + password + "\n")
 	}
 
-	// Ask if notification configuration is needed
+	// Ask for notification configuration
 	reader := bufio.NewReader(os.Stdin)
 	fmt.Print("Do you want to configure notification settings? (y/N): ")
 	notificationAnswer, _ := reader.ReadString('\n')
@@ -203,12 +232,19 @@ func createConfig(configPath string) {
 		title := getInput()
 		fmt.Print("Enter the notification text: ")
 		text := getInput()
+		fmt.Print("Enter the notification type (static/dynamic/json, default: static): ")
+		notificationType := getInput()
+		if notificationType == "" {
+			notificationType = "static" // Default to "static"
+		}
 		writer.WriteString("title = " + title + "\n")
 		writer.WriteString("text = " + text + "\n")
+		writer.WriteString("type = " + notificationType + "\n")
 	} else {
 		// Use default notification settings
 		writer.WriteString("title = mqtt-desktop-notify\n")
 		writer.WriteString("text = new notification\n")
+		writer.WriteString("type = static\n")
 	}
 
 	// Save the file
