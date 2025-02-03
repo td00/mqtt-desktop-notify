@@ -15,6 +15,37 @@ import (
 )
 
 func main() {
+	// define createconfig command
+	createConfigFlag := flag.NewFlagSet("createconfig", flag.ExitOnError)
+	configPath := createConfigFlag.String("c", "", "Path to config file")
+
+	// Parse command-line arguments
+	if len(os.Args) < 2 {
+		// Start the application directly if no command is specified
+		runApp()
+		return
+	}
+
+	// Check if the createconfig command is provided
+	switch os.Args[1] {
+	case "createconfig":
+		createConfigFlag.Parse(os.Args[2:])
+		if *configPath == "" {
+			homeDir, err := os.UserHomeDir()
+			if err != nil {
+				log.Fatalf("ERROR: getting home directory: %v", err)
+			}
+			*configPath = filepath.Join(homeDir, ".config", "mqttpushnotify.ini")
+		}
+		// Create the config interactively
+		createConfig(*configPath)
+	default:
+		// If no command is given, just run the app
+		runApp()
+	}
+}
+
+func runApp() {
 	// get config path
 	configPath := flag.String("c", "", "Path to config file")
 	flag.Parse()
@@ -33,7 +64,7 @@ func main() {
 		// No config file found, ask user to create a new one
 		fmt.Println("No config file found at", *configPath)
 		reader := bufio.NewReader(os.Stdin)
-		fmt.Print("Do you want to create a new config file? (Y/n): ")
+		fmt.Print("Do you want to create a new config file? (y/n) [y]: ")
 		answer, _ := reader.ReadString('\n')
 		answer = strings.TrimSpace(answer)
 		if answer == "" {
@@ -74,7 +105,7 @@ func main() {
 
 	// Ask user if notification should be configured
 	reader := bufio.NewReader(os.Stdin)
-	fmt.Print("Do you want to configure notification settings? (y/N): ")
+	fmt.Print("Do you want to configure notification settings? (y/n) [n]: ")
 	notificationAnswer, _ := reader.ReadString('\n')
 	notificationAnswer = strings.TrimSpace(notificationAnswer)
 	if notificationAnswer == "" {
