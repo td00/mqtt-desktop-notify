@@ -115,8 +115,14 @@ func runApp(configPath *string) {
 
 	// Subscribe to Topic
 	if token := client.Subscribe(topic, 0, func(client mqtt.Client, msg mqtt.Message) {
-		// Generate Push
-		err := beeep.Notify(title, text, "assets/information.png")
+		// Use dynamic content for text if configured as "dynamic"
+		notificationText := text
+		if text == "dynamic" {
+			notificationText = string(msg.Payload()) // Set the topic message content as text
+		}
+
+		// Generate Push Notification
+		err := beeep.Notify(title, notificationText, "assets/information.png")
 		log.Printf("INFO: Send out notification")
 		if err != nil {
 			log.Printf("ERROR: rendering notification: %v", err)
