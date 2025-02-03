@@ -15,6 +15,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Set up Go
       uses: actions/setup-go@v2
@@ -34,7 +36,7 @@ jobs:
       run: |
         TAG_NAME="v$(date +'%Y%m%d%H%M%S')"
         git tag -a "$TAG_NAME" -m "Release version"
-        git push origin --tags
+        git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }} --tags
 
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
