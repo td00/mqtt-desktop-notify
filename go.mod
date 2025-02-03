@@ -1,4 +1,4 @@
-module mqtt-push-notifier
+module mqtt-desktop-notify
 
 go 1.22.1
 
