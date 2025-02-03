@@ -105,6 +105,16 @@ func runApp(configPath *string) {
 		notificationType = "static" // Default to "static"
 	}
 
+	// Ensure default values for static notification type
+	if notificationType == "static" {
+		if title == "" {
+			title = "mqtt-desktop-notify" // Default title
+		}
+		if text == "" {
+			text = "your notification text could be here" // Default text
+		}
+	}
+
 	// Connect MQTT Client
 	log.Printf("INFO: Connect MQTT Client")
 	opts := mqtt.NewClientOptions().AddBroker(fmt.Sprintf("tcp://%s:%s", server, port))
@@ -128,7 +138,7 @@ func runApp(configPath *string) {
 		// Handle different notification types
 		switch notificationType {
 		case "static":
-			// Use configured title and text
+			// Ensure default values if title or text are empty
 			notificationTitle = title
 			notificationText = text
 		case "dynamic":
