@@ -25,6 +25,12 @@ jobs:
       run: |
         go build -o mqtt-desktop-notify
 
+    - name: Create Git tag
+      run: |
+        TAG_NAME="v$(date +'%Y%m%d%H%M%S')"
+        git tag -a "$TAG_NAME" -m "Release version"
+        git push origin --tags
+
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v1
       with:
