@@ -9,7 +9,7 @@ A simple tool that subscribes to an MQTT topic and sends a push notification whe
 By default, the configuration file is located at:
 
 - **macOS/Linux**: `~/.config/mqttpushnotify.ini`
-- **Windows**: `C:\Users\<YourUser>\AppData\Roaming\mqttpushnotify.ini`
+- **Windows**: `C:\Users\<YourUser>\.config\mqttpushnotify.ini`
 
 If you wish to use a different location for the configuration file, you can specify it with the `-c` flag.
 
